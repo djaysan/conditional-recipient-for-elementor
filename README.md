@@ -83,7 +83,7 @@ The email will be sent to the default recipient specified in the regular Email s
 Initial release
 
 PS: If you don't want to install the plugin, just add this code snippet:
-/**
+ ```/**
  * Add Conditional Recipient section to settings of Form widget.
  */
 add_action( 'elementor/element/form/section_form_options/after_section_end', function( \ElementorPro\Modules\Forms\Widgets\Form $widget ): void {
@@ -176,4 +176,4 @@ add_filter( 'elementor_pro/forms/record/actions_before', function( $record ) {
 	}
 
 	return $record;
-} );
+} );```
