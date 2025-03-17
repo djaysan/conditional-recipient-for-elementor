@@ -81,3 +81,99 @@ The email will be sent to the default recipient specified in the regular Email s
 
 = 1.0.0 =
 Initial release
+
+PS: If you don't want to install the plugin, just add this code snippet:
+/**
+ * Add Conditional Recipient section to settings of Form widget.
+ */
+add_action( 'elementor/element/form/section_form_options/after_section_end', function( \ElementorPro\Modules\Forms\Widgets\Form $widget ): void {
+	$widget->start_controls_section(
+		'section_namespace_conditional_recipient',
+		[
+			'label' => esc_html__( 'Conditional Recipient', 'namespace' ),
+		]
+	);
+
+	$widget->add_control(
+		'namespace_conditional_recipient_help',
+		[
+			'type' => \Elementor\Controls_Manager::RAW_HTML,
+			'content_classes' => 'elementor-descriptor',
+			'raw' => __( 'Use this section to determine the email recipient based on submitted form data. Set the Form Field ID to the ID of one of the fields from the Form Fields section, and use the Emails setting to set the recipient emails which correspond to each value of that field.<br><br>If the options do not match, the email will be sent to the usual recipient sent in the Email section.', 'namespace' ),
+		]
+	);
+	
+	$widget->add_control(
+		'namespace_conditional_recipient_form_field_id',
+		[
+			'label' => esc_html__( 'Form Field ID', 'namespace' ),
+			'type' => \Elementor\Controls_Manager::TEXT,
+			'ai' => [
+				'active' => false,
+			],
+		]
+	);
+
+	$repeater = new \Elementor\Repeater();
+
+	$repeater->add_control(
+		'form_field_value',
+		[
+			'label' => esc_html__( 'Form Field Value', 'namespace' ),
+			'type' => \Elementor\Controls_Manager::TEXT,
+			'ai' => [
+				'active' => false,
+			],
+		]
+	);
+
+	$repeater->add_control(
+		'email_address',
+		[
+			'label' => esc_html__( 'Email Address', 'namespace' ),
+			'type' => \Elementor\Controls_Manager::TEXT,
+			'ai' => [
+				'active' => false,
+			],
+		]
+	);
+	
+	$widget->add_control(
+		'namespace_conditional_recipient_emails',
+		[
+			'label' => esc_html__( 'Emails', 'namespace' ),
+			'type' => \Elementor\Controls_Manager::REPEATER,
+			'fields' => $repeater->get_controls(),
+			'title_field' => '{{{ form_field_value }}} &rarr; {{{ email_address }}}',
+		]
+	);
+
+	$widget->end_controls_section();
+} );
+
+/**
+ * Filter the email recipient if Conditional Recipient settings are set.
+ */
+add_filter( 'elementor_pro/forms/record/actions_before', function( $record ) {
+	/** @var \ElementorPro\Modules\Forms\Classes\Form_Record $record */
+	$form_field_id = $record->get_form_settings( 'namespace_conditional_recipient_form_field_id' );
+
+	if( $form_field_id ) {
+		$form_field = $record->get_field( ['id' => $form_field_id] )[$form_field_id] ?? null;
+
+		if( $form_field ) {
+			$form_field_value = $form_field['value'];
+			$email_settings = $record->get_form_settings( 'namespace_conditional_recipient_emails' );
+
+			foreach( $email_settings as $setting ) {
+				if( $form_field_value === $setting['form_field_value'] && $setting['email_address'] ) {
+					$settings = $record->get( 'form_settings' );
+					$settings['email_to'] = sanitize_email( $setting['email_address'] );
+					$record->set( 'form_settings', $settings );
+				}
+			}
+		}
+	}
+
+	return $record;
+} );
