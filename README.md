@@ -101,7 +101,7 @@ The email will be sent to the default recipient specified in the regular Email s
 = 1.0.0 =
 Initial release
 
-PS: If you don't want to install the plugin, just add this code snippet:
+If you don't want to install the plugin, just add this code snippet (like WP code Snippet manager):
  ```/**
  * Add Conditional Recipient section to settings of Form widget.
  */
