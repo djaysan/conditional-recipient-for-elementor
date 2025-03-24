@@ -66,7 +66,9 @@ For support, please visit:
 
 == Credits ==
 
-Developed by Ludovic Verbeeck
+Special thanks to Github user tomslominski (https://github.com/tomslominski)
+Developed by tomslominski
+Ported by Ludovic Verbeeck
 Released on March 17, 2025
 
 == Frequently Asked Questions ==
