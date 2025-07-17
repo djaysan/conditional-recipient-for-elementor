@@ -108,162 +108,158 @@ The email will be sent to the default recipient specified in the regular Email s
 Initial release
 
 If you don't want to install the plugin, just add this code snippet (like WP code Snippet manager):
- ```<?php
-/**
- * Plugin Name: Conditional Recipient for Elementor
- * Description: Adds conditional recipient functionality to Elementor Forms
- * Version: 1.2.1
- * Author: Ludovic Verbeeck
- * License: GPL v2 or later
- */
-
+ ```
+<?php
+// Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Add Conditional Recipient section to settings of Form widget.
- */
-add_action('elementor/element/form/section_form_options/after_section_end', function(\ElementorPro\Modules\Forms\Widgets\Form $widget): void {
-    $widget->start_controls_section(
-        'section_namespace_conditional_recipient',
-        [
-            'label' => esc_html__('Conditional Recipient', 'namespace'),
-        ]
-    );
+// Prevent redeclaration
+if (!function_exists('namespace_add_conditional_email_controls')) {
 
-    $widget->add_control(
-        'namespace_conditional_recipient_help',
-        [
-            'type' => \Elementor\Controls_Manager::RAW_HTML,
-            'content_classes' => 'elementor-descriptor',
-            'raw' => __('Use this section to determine the email recipient based on submitted form data. Set the Form Field ID to the ID of one of the fields from the Form Fields section, and use the Emails setting to set the recipient emails which correspond to each value of that field.<br><br>If the options do not match, the email will be sent to the usual recipient set in the Email section.', 'namespace'),
-        ]
-    );
+    /**
+     * Add Conditional Recipient section to settings of Form widget.
+     */
+    add_action('elementor/element/form/section_form_options/after_section_end', function(\ElementorPro\Modules\Forms\Widgets\Form $widget): void {
+        $widget->start_controls_section(
+            'section_namespace_conditional_recipient',
+            [
+                'label' => esc_html__('Conditional Recipient', 'namespace'),
+            ]
+        );
 
-    $widget->add_control(
-        'namespace_conditional_recipient_form_field_id',
-        [
-            'label' => esc_html__('Form Field ID', 'namespace'),
-            'type' => \Elementor\Controls_Manager::TEXT,
-            'ai' => [ 'active' => false ],
-        ]
-    );
+        $widget->add_control(
+            'namespace_conditional_recipient_help',
+            [
+                'type' => \Elementor\Controls_Manager::RAW_HTML,
+                'content_classes' => 'elementor-descriptor',
+                'raw' => __('Use this section to determine the email recipient based on submitted form data. Set the Form Field ID to the ID of one of the fields from the Form Fields section, and use the Emails setting to set the recipient emails which correspond to each value of that field.', 'namespace'),
+            ]
+        );
 
-    $repeater = new \Elementor\Repeater();
+        $widget->add_control(
+            'namespace_conditional_recipient_form_field_id',
+            [
+                'label' => esc_html__('Form Field ID', 'namespace'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'ai' => ['active' => false],
+            ]
+        );
 
-    $repeater->add_control(
-        'form_field_value',
-        [
-            'label' => esc_html__('Form Field Value', 'namespace'),
-            'type' => \Elementor\Controls_Manager::TEXT,
-            'ai' => [ 'active' => false ],
-        ]
-    );
+        $repeater = new \Elementor\Repeater();
 
-    $repeater->add_control(
-        'email_address',
-        [
-            'label' => esc_html__('To Email Address(es)', 'namespace'),
-            'type' => \Elementor\Controls_Manager::TEXT,
-            'placeholder' => 'to@example.com, another@example.com',
-            'description' => esc_html__('Comma-separated list of main recipients.', 'namespace'),
-            'ai' => [ 'active' => false ],
-        ]
-    );
+        $repeater->add_control(
+            'form_field_value',
+            [
+                'label' => esc_html__('Form Field Value', 'namespace'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'ai' => ['active' => false],
+            ]
+        );
 
-    $repeater->add_control(
-        'cc_addresses',
-        [
-            'label' => esc_html__('CC Email Address(es)', 'namespace'),
-            'type' => \Elementor\Controls_Manager::TEXT,
-            'placeholder' => 'cc1@example.com, cc2@example.com',
-            'description' => esc_html__('Comma-separated list of CC recipients (optional).', 'namespace'),
-            'ai' => [ 'active' => false ],
-        ]
-    );
+        $repeater->add_control(
+            'email_address',
+            [
+                'label' => esc_html__('To Email Address(es)', 'namespace'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'placeholder' => 'to@example.com, another@example.com',
+                'description' => esc_html__('Comma-separated list of main recipients.', 'namespace'),
+                'ai' => ['active' => false],
+            ]
+        );
 
-    $widget->add_control(
-        'namespace_conditional_recipient_emails',
-        [
-            'label' => esc_html__('Emails', 'namespace'),
-            'type' => \Elementor\Controls_Manager::REPEATER,
-            'fields' => $repeater->get_controls(),
-            'title_field' => '{{{ form_field_value }}} → {{{ email_address }}}',
-        ]
-    );
+        $repeater->add_control(
+            'cc_addresses',
+            [
+                'label' => esc_html__('CC Email Address(es)', 'namespace'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'placeholder' => 'cc1@example.com, cc2@example.com',
+                'description' => esc_html__('Comma-separated list of CC recipients (optional).', 'namespace'),
+                'ai' => ['active' => false],
+            ]
+        );
 
-    $widget->end_controls_section();
-});
+        $widget->add_control(
+            'namespace_conditional_recipient_emails',
+            [
+                'label' => esc_html__('Emails', 'namespace'),
+                'type' => \Elementor\Controls_Manager::REPEATER,
+                'fields' => $repeater->get_controls(),
+                'title_field' => '{{{ form_field_value }}} → {{{ email_address }}}',
+            ]
+        );
 
-/**
- * Filter the email recipient if Conditional Recipient settings are set.
- */
-add_filter('elementor_pro/forms/record/actions_before', function($record) {
-    /** @var \ElementorPro\Modules\Forms\Classes\Form_Record $record */
-    $form_field_id = $record->get_form_settings('namespace_conditional_recipient_form_field_id');
+        $widget->end_controls_section();
+    });
 
-    if ($form_field_id) {
-        $form_field = $record->get_field(['id' => $form_field_id])[$form_field_id] ?? null;
+    /**
+     * Filter the email recipient if Conditional Recipient settings are set.
+     */
+    add_filter('elementor_pro/forms/record/actions_before', function($record) {
+        /** @var \ElementorPro\Modules\Forms\Classes\Form_Record $record */
+        $form_field_id = $record->get_form_settings('namespace_conditional_recipient_form_field_id');
 
-        if ($form_field) {
-            $form_field_value = $form_field['value'];
-            $email_settings = $record->get_form_settings('namespace_conditional_recipient_emails');
+        if ($form_field_id) {
+            $form_field = $record->get_field(['id' => $form_field_id])[$form_field_id] ?? null;
 
-            foreach ($email_settings as $setting) {
-                if ($form_field_value === $setting['form_field_value'] && $setting['email_address']) {
-                    $settings = $record->get('form_settings');
+            if ($form_field) {
+                $form_field_value = $form_field['value'];
+                $email_settings = $record->get_form_settings('namespace_conditional_recipient_emails');
 
-                    // Handle multiple "To" recipients
-                    $to_emails = array_map('sanitize_email', array_map('trim', explode(',', $setting['email_address'])));
-                    $to_emails = array_filter($to_emails, 'is_email');
+                foreach ($email_settings as $setting) {
+                    if ($form_field_value === $setting['form_field_value'] && $setting['email_address']) {
+                        $settings = $record->get('form_settings');
 
-                    if (!empty($to_emails)) {
-                        $settings['email_to'] = implode(',', $to_emails);
-                    }
+                        // Handle multiple To recipients
+                        $to_emails = array_map('sanitize_email', array_map('trim', explode(',', $setting['email_address'])));
+                        $to_emails = array_filter($to_emails, 'is_email');
 
-                    // Save CC addresses using Elementor's expected key: email_to_cc
-                    if (!empty($setting['cc_addresses'])) {
-                        $cc_emails = array_map('sanitize_email', array_map('trim', explode(',', $setting['cc_addresses'])));
-                        $cc_emails = array_filter($cc_emails, 'is_email');
-
-                        if (!empty($cc_emails)) {
-                            $settings['email_to_cc'] = implode(',', $cc_emails);
+                        if (!empty($to_emails)) {
+                            $settings['email_to'] = implode(',', $to_emails);
                         }
-                    }
 
-                    $record->set('form_settings', $settings);
-                    break;
+                        // Handle CC addresses
+                        if (!empty($setting['cc_addresses'])) {
+                            $cc_emails = array_map('sanitize_email', array_map('trim', explode(',', $setting['cc_addresses'])));
+                            $cc_emails = array_filter($cc_emails, 'is_email');
+
+                            if (!empty($cc_emails)) {
+                                $settings['email_to_cc'] = implode(',', $cc_emails);
+                            }
+                        }
+
+                        $record->set('form_settings', $settings);
+                        break;
+                    }
                 }
             }
         }
-    }
 
-    return $record;
-});
+        return $record;
+    });
 
-/**
- * Add CC recipients to wp_mail headers (for Elementor).
- */
-add_filter('elementor_pro/forms/wp_mail_args', function($mail_args, $record) {
-    $form_settings = $record->get('form_settings');
+    /**
+     * Add CC recipients to wp_mail headers.
+     */
+    add_filter('elementor_pro/forms/wp_mail_args', function($mail_args, $record) {
+        $form_settings = $record->get('form_settings');
 
-    if (!empty($form_settings['email_to_cc'])) {
-        $cc_addresses = array_map('sanitize_email', array_map('trim', explode(',', $form_settings['email_to_cc'])));
-        $cc_addresses = array_filter($cc_addresses, 'is_email');
+        if (!empty($form_settings['email_to_cc'])) {
+            $cc_addresses = array_map('sanitize_email', array_map('trim', explode(',', $form_settings['email_to_cc'])));
+            $cc_addresses = array_filter($cc_addresses, 'is_email');
 
-        if (!empty($cc_addresses)) {
-            if (!isset($mail_args['headers']) || !is_array($mail_args['headers'])) {
-                $mail_args['headers'] = [];
-            }
+            if (!empty($cc_addresses)) {
+                if (!isset($mail_args['headers']) || !is_array($mail_args['headers'])) {
+                    $mail_args['headers'] = [];
+                }
 
-            foreach ($cc_addresses as $cc) {
-                $mail_args['headers'][] = 'Cc: ' . $cc;
+                foreach ($cc_addresses as $cc) {
+                    $mail_args['headers'][] = 'Cc: ' . $cc;
+                }
             }
         }
-    }
 
-    return $mail_args;
-}, 10, 2);
-
-
+        return $mail_args;
+    }, 10, 2);
+}
