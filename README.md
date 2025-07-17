@@ -71,6 +71,8 @@ Developed by tomslominski
 Ported by Ludovic Verbeeck
 Released on March 17, 2025
 
+<a href='https://ko-fi.com/H2H81I6YY1' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 == Frequently Asked Questions ==
 
 = How do I set up conditional recipients? =
@@ -97,10 +99,13 @@ The email will be sent to the default recipient specified in the regular Email s
 
 = 1.0.0 =
 * Initial release
+  
 = 1.1.0 =
 * Added CC'd
+  
 * = 1.2.1 =
 * Added Multiple CC'd
+  
 
 == Upgrade Notice ==
 
