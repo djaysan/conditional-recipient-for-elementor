@@ -1,3 +1,6 @@
+
+<img width="1502" height="750" alt="Screenshot 2025-07-17 at 16 26 23" src="https://github.com/user-attachments/assets/139f5286-cbc4-4fca-9ac8-b1842af902dc" />
+
 === Conditional Recipient for Elementor ===
 
 Contributors: ludovicverbeeck
